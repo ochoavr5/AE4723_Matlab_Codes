@@ -1,0 +1,130 @@
+clc;clear all;close all;
+
+%% Given
+S = 950/(3.2808^2); %m^2
+AR = 5.92;
+C_D0 = 0.015;
+K = 0.08;
+W = 73000*4.45; %lb
+
+T0 = 288.16; %K
+a1 = -6.5*10^-3; %K/m
+rho0 = 1.225; %kg/m^3
+g = 9.81; %m/s^2
+R = 287; %J/kg*K
+
+%% Problem 1
+%Graph Lift/Drag against airspeed, V, for speeds 200 ft/s - 1000 ft/s
+%for altitude, h = 10000 ft. 
+%Calculate L/D for different V;(PLOT TO SCALE ON ENGINEERING PAPER)
+%%V on horizontal axis and L/D on vertical axis
+%%Additionally include plots for h = 30000 ft and 50000 ft
+
+V = (200:1000)/3.2808; %m/s
+h = [10000, 30000, 50000]/3.2808; %m
+
+%For h <= 11 km
+T1 = T0 + a1*h(1); %K
+T2 = T0 + a1*h(2);
+rho = [rho0*(T1/T0)^(-1 - (g/(a1*R))),...
+            rho0*(T2/T0)^(-1 - (g/(a1*R)))];%kg/m^3
+
+%For h > 11 km
+h11 = 11000/3.2808;       
+T11 = T0 + a1*h11;
+rho11 = rho0*(T11/T0)^(-1 - (g/(a1*R)));
+rho(3) = rho11 * exp((-g*(h(3) - h11))/(R * T11));%kg/m^3       
+
+L = W; %Assume
+n = 0;
+while(n < length(V))
+    n = n + 1;
+    %For h = 10000 ft
+    C_L1 = 2*L/(rho(1)*S*V(n)^2);
+    C_D1 = C_D0 + K*C_L1^2;
+
+    LOD1(n) = C_L1/C_D1;
+
+    %For h = 30000 ft
+    C_L2 = 2*L/(rho(2)*S*V(n)^2);
+    C_D2 = C_D0 + K*C_L2^2;
+
+    LOD2(n) = C_L2/C_D2; 
+
+    %For h = 50000 ft
+    C_L3 = 2*L/(rho(3)*S*V(n)^2);
+    C_D3 = C_D0 + K*C_L3^2;
+
+    LOD3(n) = C_L3/C_D3;
+    
+    end
+%Plots
+figure;
+plot(V,LOD1,'r','LineWidth',2);hold on;
+plot(V,LOD2,'--b','LineWidth',2)
+plot(V,LOD3,':g','LineWidth',2)
+grid on
+xlabel('Airvelocity, V [ft/s]')
+ylabel('Lift Over Drag Ratio')
+title('Lift over Drag vs. Airvelocity')
+legend('L/D at h = 10000 ft',...
+    'L/D at h = 30000 ft',...
+    'L/D at h = 50000 ft')
+
+
+%% Problem 2
+%Graph Required Thrust (T_R)
+
+%T_R calculations
+m = 0;
+while(m < length(V))
+    m = m + 1;
+    T_R1(m) = W/LOD1(m)/1000; %kN
+    T_R2(m) = W/LOD2(m)/1000;
+    T_R3(m) = W/LOD3(m)/1000;
+end
+
+%Plots
+figure;
+plot(V,T_R1,'r','LineWidth',2);hold on;
+plot(V,T_R2,'--b','LineWidth',2)
+plot(V,T_R3,':g','LineWidth',2)
+grid on
+xlabel('Airvelocity, V [ft/s]')
+ylabel('Required Thrust, T_R [kN]')
+title('Required Thrust vs. Airvelocity')
+legend('T_R at h = 10000 ft',...
+    'T_R at h = 30000 ft',...
+    'T_R at h = 50000 ft')
+
+%% Problem 3
+% Gulfstream IV - flys at h = 30000 ft
+% V = 800 ft/s
+
+% a) Find expression and numerical value for flight
+%    path angle for steady descent
+
+
+% b) Would it be possible to descend steadily at a lower
+%    flight path angle if the airspeed were different? If so
+%    what would be the numerical value of the airspeed to 
+%    minimize the flight path angle (evaluated at 30,000 ft)?
+
+
+%% Problem 4
+% Determine the absolute and service ceilings for the 
+% Gulfstream IV, assuming twin turbofan engines that generate 
+% 13,850 lb of thrust each.
+
+
+%% Problem 5
+% An aircraft needs to perform an accelerated climbing turn 
+% maneuver. Here, the climb angle is a constant gamma_0, and the radius 
+% of turn is a constant R_0: The initial airspeed is V_0, and the 
+% desired rate of change of airspeed is a constant a_0. Assuming 
+% C_L = C_L, where C_L is a known constant, derive expressions for the 
+% angle of attack alpha, the thrust Tr, and the bank angle phi to achieve 
+% this maneuver.
+
+
+
