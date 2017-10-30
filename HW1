@@ -98,8 +98,9 @@ legend('T_R at h = 10000 ft',...
     'T_R at h = 50000 ft')
 
 %% Problem 3
-% Gulfstream IV - flys at h = 30000 ft
-% V = 800 ft/s
+% Gulfstream IV - flys at: 
+h_G4 = 30000/3.2808 %m
+V_G4 = 800/3.2808 %m/s
 
 % a) Find expression and numerical value for flight
 %    path angle for steady descent
@@ -115,6 +116,18 @@ legend('T_R at h = 10000 ft',...
 % Determine the absolute and service ceilings for the 
 % Gulfstream IV, assuming twin turbofan engines that generate 
 % 13,850 lb of thrust each.
+h_G4 = [100]/3.2808 %m
+V_G4 = 800/3.2808 %m/s
+
+T_1Engine = 13850 * 4.45; %N
+T = 2 * T_1Engine; %N
+
+tau_G4 = tau0 + a1*h_G4;
+rho_G4 = rho0*(tau_G4/tau0)^(-1 - (g/(a1*R)));
+
+
+RC = V_G4*((T/W) - (0.5*rho_G4*(V_G4^2)*C_D0/(W/S)) - (W/S)*(K/(0.5*rho_G4*V_G4^2)))
+
 
 
 %% Problem 5
@@ -125,6 +138,4 @@ legend('T_R at h = 10000 ft',...
 % C_L = C_L, where C_L is a known constant, derive expressions for the 
 % angle of attack alpha, the thrust Tr, and the bank angle phi to achieve 
 % this maneuver.
-
-
 
