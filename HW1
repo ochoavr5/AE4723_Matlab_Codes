@@ -114,20 +114,34 @@ V_G4 = 800/3.2808 %m/s
 
 %% Problem 4
 % Determine the absolute and service ceilings for the 
+%Absolute - RC_max = 0 m/s
+%Service - RC_max = 0.5080 m/s or 100 ft/min
 % Gulfstream IV, assuming twin turbofan engines that generate 
 % 13,850 lb of thrust each.
-h_G4 = [100]/3.2808 %m
-V_G4 = 800/3.2808 %m/s
-
-T_1Engine = 13850 * 4.45; %N
-T = 2 * T_1Engine; %N
+h_G4 = [100:40000]/3.2808; %m
+V_G4 = 800/3.2808; %m/s
 
 tau_G4 = tau0 + a1*h_G4;
-rho_G4 = rho0*(tau_G4/tau0)^(-1 - (g/(a1*R)));
+LOD_max = sqrt(1/(4*C_D0*K));
 
+T_1Engine = 13850 * 4.45; %N
+T_twin = 2 * T_1Engine; %N
 
-RC = V_G4*((T/W) - (0.5*rho_G4*(V_G4^2)*C_D0/(W/S)) - (W/S)*(K/(0.5*rho_G4*V_G4^2)))
+z = 1 + sqrt(1 + 3/((LOD_max^2)*((T_twin/W)^2)));
+p4 = 0;
+while(p4 < length(tau_G4))
+    p4 = p4 + 1;
+    rho_G4 = rho0*(tau_G4(p4)/tau0)^(-1 - (g/(a1*R)));
 
+    %RC(p4) = V_G4*((T/W) - (0.5*rho_G4*(V_G4^2)*C_D0/(W/S)) - (W/S)*(K/(0.5*rho_G4*V_G4^2)));
+    RC_max(p4) = sqrt((W/S)*z/(3*rho_G4*C_D0))*((T_twin/W)^(3/2))*(1 - (z/6) - (3/(2*((T_twin/W)^2)*((LOD_max)^2)*z)));
+    if RC_max(p4) <= 0.01
+        AbsoluteCeil(p4) = RC_max(p4);
+    end
+    if RC_max(p4) <= 101 && RC_max(p4) >= 99
+        ServiceCeil(p4) = RC_max(p4);
+    end
+end
 
 
 %% Problem 5
@@ -138,4 +152,3 @@ RC = V_G4*((T/W) - (0.5*rho_G4*(V_G4^2)*C_D0/(W/S)) - (W/S)*(K/(0.5*rho_G4*V_G4^
 % C_L = C_L, where C_L is a known constant, derive expressions for the 
 % angle of attack alpha, the thrust Tr, and the bank angle phi to achieve 
 % this maneuver.
-
