@@ -7,7 +7,7 @@ C_D0 = 0.015;
 K = 0.08;
 W = 73000*4.45; %lb
 
-T0 = 288.16; %K
+tau0 = 288.16; %K
 a1 = -6.5*10^-3; %K/m
 rho0 = 1.225; %kg/m^3
 g = 9.81; %m/s^2
@@ -24,16 +24,16 @@ V = (200:1000)/3.2808; %m/s
 h = [10000, 30000, 50000]/3.2808; %m
 
 %For h <= 11 km
-T1 = T0 + a1*h(1); %K
-T2 = T0 + a1*h(2);
-rho = [rho0*(T1/T0)^(-1 - (g/(a1*R))),...
-            rho0*(T2/T0)^(-1 - (g/(a1*R)))];%kg/m^3
+T1 = tau0 + a1*h(1); %K
+T2 = tau0 + a1*h(2);
+rho = [rho0*(T1/tau0)^(-1 - (g/(a1*R))),...
+            rho0*(T2/tau0)^(-1 - (g/(a1*R)))];%kg/m^3
 
 %For h > 11 km
-h11 = 11000/3.2808;       
-T11 = T0 + a1*h11;
-rho11 = rho0*(T11/T0)^(-1 - (g/(a1*R)));
-rho(3) = rho11 * exp((-g*(h(3) - h11))/(R * T11));%kg/m^3       
+h11 = 11000;       
+tau11 = tau0 + a1*h11;
+rho11 = rho0*(tau11/tau0)^(-1 - (g/(a1*R)));
+rho(3) = rho11 * exp((-g*(h(3) - h11))/(R * tau11));%kg/m^3       
 
 L = W; %Assume
 n = 0;
@@ -60,9 +60,9 @@ while(n < length(V))
     end
 %Plots
 figure;
-plot(V,LOD1,'r','LineWidth',2);hold on;
-plot(V,LOD2,'--b','LineWidth',2)
-plot(V,LOD3,':g','LineWidth',2)
+plot(V*3.2808,LOD1,'r','LineWidth',2);hold on;
+plot(V*3.2808,LOD2,'--b','LineWidth',2)
+plot(V*3.2808,LOD3,':g','LineWidth',2)
 grid on
 xlabel('Airvelocity, V [ft/s]')
 ylabel('Lift Over Drag Ratio')
@@ -86,9 +86,9 @@ end
 
 %Plots
 figure;
-plot(V,T_R1,'r','LineWidth',2);hold on;
-plot(V,T_R2,'--b','LineWidth',2)
-plot(V,T_R3,':g','LineWidth',2)
+plot(V*3.2808,T_R1,'r','LineWidth',2);hold on;
+plot(V*3.2808,T_R2,'--b','LineWidth',2)
+plot(V*3.2808,T_R3,':g','LineWidth',2)
 grid on
 xlabel('Airvelocity, V [ft/s]')
 ylabel('Required Thrust, T_R [kN]')
@@ -99,18 +99,43 @@ legend('T_R at h = 10000 ft',...
 
 %% Problem 3
 % Gulfstream IV - flys at: 
-h_G4 = 30000/3.2808 %m
-V_G4 = 800/3.2808 %m/s
+h_G4 = 30000/3.2808; %m
+V_G4 = 800/3.2808; %m/s
 
+tau_G4 = tau0 + a1*h_G4;
+rho_G4 = rho0*(tau_G4/tau0)^(-1 - (g/(a1*R)));
 % a) Find expression and numerical value for flight
 %    path angle for steady descent
-
+RC_a = V_G4*(-((0.5*rho_G4*(V_G4^2)*C_D0)/(W/S)) - (W/S)*(K/(0.5*rho_G4*V_G4^2)));
+  
+gamma_a = asind(RC_a/V_G4)  
 
 % b) Would it be possible to descend steadily at a lower
 %    flight path angle if the airspeed were different? If so
 %    what would be the numerical value of the airspeed to 
 %    minimize the flight path angle (evaluated at 30,000 ft)?
+V_G4 = [0:1000]/3.2808; %m/s
+i = 0;
+while(i < length(V_G4))
+    i = i + 1;
+    RC(i) = V_G4(i)*(-((0.5*rho_G4*(V_G4(i)^2)*C_D0)/(W/S)) - (W/S)*(K/(0.5*rho_G4*V_G4(i)^2)));
+     
+    gamma(i) = asind(RC(i)/V_G4(i));
+end 
 
+%figure;
+%plot(V_G4*3.2808,gamma)
+
+gamma_min = min(gamma);
+
+i2 = 0; 
+while(i2 < length(V_G4))
+    i2 = i2 + 1;
+    if gamma(i2) == gamma_min
+        V_min = V_G4(i2)*3.2808;
+    end
+end
+        
 
 %% Problem 4
 % Determine the absolute and service ceilings for the 
@@ -118,31 +143,50 @@ V_G4 = 800/3.2808 %m/s
 %Service - RC_max = 0.5080 m/s or 100 ft/min
 % Gulfstream IV, assuming twin turbofan engines that generate 
 % 13,850 lb of thrust each.
-h_G4 = [100:40000]/3.2808; %m
-V_G4 = 800/3.2808; %m/s
+h_G4 = [0:15000]; %m
+%V_G4 = 800/3.2808; %m/s
 
-tau_G4 = tau0 + a1*h_G4;
+
 LOD_max = sqrt(1/(4*C_D0*K));
 
 T_1Engine = 13850 * 4.45; %N
 T_twin = 2 * T_1Engine; %N
 
-z = 1 + sqrt(1 + 3/((LOD_max^2)*((T_twin/W)^2)));
-p4 = 0;
-while(p4 < length(tau_G4))
-    p4 = p4 + 1;
-    rho_G4 = rho0*(tau_G4(p4)/tau0)^(-1 - (g/(a1*R)));
 
-    %RC(p4) = V_G4*((T/W) - (0.5*rho_G4*(V_G4^2)*C_D0/(W/S)) - (W/S)*(K/(0.5*rho_G4*V_G4^2)));
-    RC_max(p4) = sqrt((W/S)*z/(3*rho_G4*C_D0))*((T_twin/W)^(3/2))*(1 - (z/6) - (3/(2*((T_twin/W)^2)*((LOD_max)^2)*z)));
-    if RC_max(p4) <= 0.01
-        AbsoluteCeil(p4) = RC_max(p4);
+p4 = 0;
+while(p4 < length(h_G4))
+    p4 = p4 + 1;
+    tau_G4(p4) = tau0 + a1*h_G4(p4);
+    rho_G4(p4) = rho0*(tau_G4(p4)/tau0)^(-1 - (g/(a1*R)));
+    
+    if h_G4(p4) > 11000
+        h11 = 11000;       
+        tau11 = tau0 + a1*h11;
+        rho11 = rho0*(tau11/tau0)^(-1 - (g/(a1*R)));
+        rho_G4(p4) = rho11 * exp((-g*(h_G4(p4) - h11))/(R * tau11));%kg/m^3     
     end
-    if RC_max(p4) <= 101 && RC_max(p4) >= 99
-        ServiceCeil(p4) = RC_max(p4);
+    
+    T_G4(p4) = rho_G4(p4)*T_twin/rho0;
+    
+    z = 1 + sqrt(1 + 3/((LOD_max^2)*((T_G4(p4)/W)^2)));
+    RC_max(p4) = sqrt((W/S)*z/(3*rho_G4(p4)*C_D0))*((T_G4(p4)/W)^(3/2))*(1 - (z/6) - (3/(2*((T_G4(p4)/W)^2)*((LOD_max)^2)*z)));
+    if RC_max(p4) < 0.01
+        if RC_max(p4) > - 0.001
+            Absolute_RC = RC_max(p4);
+            AbsoluteCeil = h_G4(p4)/1000;
+        end
+    end
+    if RC_max(p4) < 100.001/3.2808
+        if RC_max(p4) > 99.99/3.2808
+            Service_RC = RC_max(p4);
+            ServiceCeil= h_G4(p4)/1000;
+        end
     end
 end
-
+AbsoluteCeil
+ServiceCeil
+%figure;
+%plot(h_G4,RC_max)
 
 %% Problem 5
 % An aircraft needs to perform an accelerated climbing turn 
@@ -152,3 +196,4 @@ end
 % C_L = C_L, where C_L is a known constant, derive expressions for the 
 % angle of attack alpha, the thrust Tr, and the bank angle phi to achieve 
 % this maneuver.
+
