@@ -136,7 +136,7 @@ while(i2 < length(V_G4))
     end
 end
         
-
+V_min
 %% Problem 4
 % Determine the absolute and service ceilings for the 
 %Absolute - RC_max = 0 m/s
@@ -176,15 +176,19 @@ while(p4 < length(h_G4))
             AbsoluteCeil = h_G4(p4)/1000;
         end
     end
-    if RC_max(p4) < 100.001/3.2808
-        if RC_max(p4) > 99.99/3.2808
+    if RC_max(p4) < 101/3.2808/60
+        if RC_max(p4) > 99.9/3.2808/60
             Service_RC = RC_max(p4);
             ServiceCeil= h_G4(p4)/1000;
         end
     end
 end
+
+%Absolute_RC
+%Service_RC
 AbsoluteCeil
 ServiceCeil
+
 %figure;
 %plot(h_G4,RC_max)
 
@@ -193,7 +197,46 @@ ServiceCeil
 % maneuver. Here, the climb angle is a constant gamma_0, and the radius 
 % of turn is a constant R_0: The initial airspeed is V_0, and the 
 % desired rate of change of airspeed is a constant a_0. Assuming 
-% C_L = C_L, where C_L is a known constant, derive expressions for the 
+% C_L = C_l*alpha, where C_l is a known constant, derive expressions for the 
 % angle of attack alpha, the thrust Tr, and the bank angle phi to achieve 
 % this maneuver.
+%W, S, and rho are constants
+%C_D0, K given
+
+%T - D - W*sin(gamma_0) = m*a_0
+%L*cos(phi) - W*cos(gamma_0) = 0
+%L*sin(phi) = m*(V_0^2)*cos(gamma_0)/R_0
+
+%L = 0.5*rho_0*(V_0^2)*S*C_L
+%C_L = C_l*alpha
+%0.5*rho_0*(V_0^2)*S*C_l*alpha*cos(phi) = W*cos(gamma_0)
+%0.5*rho_0*(V_0^2)*S*C_l*alpha*sin(phi) = m*(V_0^2)*cos(gamma_0)/R_0
+%cos(gamma_0) = 0.5*rho_0*S*C_l*alpha*sin(phi)*R_0/m
+%gamma_0 = acos(0.5*rho_0*S*C_l*alpha*sin(phi)*R_0/m)
+%W = m*g
+%0.5*rho_0*(V_0^2)*S*C_l*alpha*cos(phi) = g*0.5*rho_0*S*C_l*alpha*sin(phi)*R_0
+%(V_0^2)*cos(phi) = g*sin(phi)*R_0
+%tan(phi) = (V_0^2)/(g*R_0)
+%%%%%%%phi = atan((V_0^2)/(g*R_0))%%%%%%%%%%%%%%%
+
+%D = 0.5*rho*(V_0^2)*S*C_D
+%C_D = C_D0 + K*C_L^2
+%D = 0.5*rho*(V_0^2)*S*(C_D0 + K*(C_l*alpha)^2)
+
+%T - 0.5*rho*(V_0^2)*S*(C_D0 + K*(C_l*alpha)^2) - W*sin(gamma_0)= m*a_0
+%T - 0.5*rho*(V_0^2)*S*(C_D0 + K*(C_l*alpha)^2) - W*sin(acos(0.5*g*rho_0*S*C_l*alpha*sin(phi)*R_0/W))= (W/g)*a_0
+%sin(acos(0.5*rho_0*S*C_l*alpha*sin(phi)*R_0/m)) = (1 + 0.5*g*rho_0*S*C_l*alpha*sin(phi)*R_0/W)^0.5
+%sin(acos(0.5*rho_0*S*C_l*alpha*sin(phi)*R_0/m)) = ((W + 0.5*g*rho_0*S*C_l*alpha*sin(atan((V_0^2)/(g*R_0)))*R_0_/W)^0.5
+
+%W = (T - m*a_0 - 0.5*rho*(V_0^2)*S*(C_D0 + K*(C_l*alpha)^2))/sin(gamma_0)
+
+%L = 0.5*rho_0*(V_0^2)*S*C_l*alpha
+
+
+
+
+
+
+
+
 
