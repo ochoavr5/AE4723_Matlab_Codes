@@ -1,5 +1,4 @@
 clc;clear all;close all;
-
 %% Cesna T37
 
 b = 33.8; %ft - Wingspan
@@ -15,10 +14,10 @@ W = 6360; %lb - Weight w/ fuel included
 T_twin = 2*1020; %lb - Thrust of 2 engines at sealevel
 
 W_fuel = 2300; %lb - Weight of fuel
-S_c = 1.2; %lbm/(lbf*hr)
+S_c = 1.2/3600; %lbm/(lbf*hr) to s/ft
 C_D0 = 0.02;
 C_Lmax = 1.4;
-C_ac_w = 0.01;
+C_mac_w = 0.01;
 C_L0_w = 0.1;
 
 a_w = 6.06;
@@ -27,6 +26,7 @@ a_t = 4.7;
 l_t_bar = 16; %ft to m
 
 h = 0.1;
+h_ac = 0.25;
 
 i_t = -1*pi/180;
 
@@ -38,109 +38,52 @@ J_b = [7985 0 0;
     0 0 11183]; %slugs*ft^2 to kg
 
 
+%Horizontal tail volume ratio
+V_H = (l_t_bar * St)/(c_mean * S);
 
-%1.8*K = R
+%% Standarized Pressure
 tau0 = 288.16*1.8; %R
 a1 = (-6.5*10^-3)*1.8/3.2808; %K/m to R/ft
-rho0 = 1.225/515.379; %kg/m^3 to slug/ft^3
+rho0 = 1.225/14.5939/(3.2808^3); %kg/m^3 to slug/ft^3
 g = 32.174; %ft/s^2
 %R = 287; %J/kg*K
 R = 1716; %ft^2/s^2*R
+h1 = 10000; %ft
+%h = 10000/3.2808; %ft to m
 
+tau1 = tau0 + a1*h1; %K
+rho = rho0*(tau1/tau0)^(-1 - (g/(a1*R)));
 
-%% Plot L/D curves
-
-alt = [3000 5000 10000]; %ft
-
-
-rho = [0.0022 0.002 0.0017];
-
-V = 0:1000;
-L = W;
-n = 0;
-while(n < length(V))
-    n = n + 1;
-    %For h = 3000 ft
-    C_L1 = 2*L/(rho(1)*S*V(n)^2);
-    C_D1 = C_D0 + K*C_L1^2;
-
-    LOD1(n) = C_L1/C_D1;
-
-    %For h = 5000 ft
-    C_L2 = 2*L/(rho(2)*S*V(n)^2);
-    C_D2 = C_D0 + K*C_L2^2;
-
-    LOD2(n) = C_L2/C_D2; 
-
-    %For h = 10000 ft
-    C_L3 = 2*L/(rho(3)*S*V(n)^2);
-    C_D3 = C_D0 + K*C_L3^2;
-
-    LOD3(n) = C_L3/C_D3;
-    
-    end
-
-
-figure;
-plot(V,LOD1,'r','LineWidth',2);hold on;
-plot(V,LOD2,'--b','LineWidth',2)
-plot(V,LOD3,':g','LineWidth',2)
-grid on
-xlabel('Airvelocity, V [ft/s]')
-ylabel('Lift Over Drag Ratio')
-title('Lift over Drag vs. Airvelocity')
-legend('L/D at h = 3000 ft',...
-    'L/D at h = 5000 ft',...
-    'L/D at h = 10000 ft')
-
-
-
-
-
-%% Find ABS and Service Ceiling 
-
+%% Problem 3
 LOD_max = sqrt(1/(4*C_D0*K));
-h_2 = (0:15000)*3.2808;
+V_max = sqrt((2/rho)*(W/S)*sqrt(K/C_D0))
+%V_max = 400;
 
-p4 = 0;
-while(p4 < length(h_2))
-    p4 = p4 + 1;
-    tau_2(p4) = tau0 + a1*h_2(p4);
-    rho_2(p4) = rho0*(tau_2(p4)/tau0)^(-1 - (g/(a1*R)));
-    
-    if h_2(p4) > 11000/3.2808
-        h11 = 11000/3.2808;       
-        tau11 = tau0 + a1*h11;
-        rho11 = rho0*(tau11/tau0)^(-1 - (g/(a1*R)));
-        rho_2(p4) = rho11 * exp((-g*(h_2(p4) - h11))/(R * tau11));    
-    end
-    
-    T_2(p4) = rho_2(p4)*T_twin/rho0;
-    
-    z = 1 + sqrt(1 + 3/((LOD_max^2)*((T_2(p4)/W)^2)));
-    RC_max(p4) = sqrt((W/S)*z/(3*rho_2(p4)*C_D0))*((T_2(p4)/W)^(3/2))*(1 - (z/6) - (3/(2*((T_2(p4)/W)^2)*((LOD_max)^2)*z)));
-    if RC_max(p4) < 0.01
-        if RC_max(p4) > - 0.001
-            Absolute_RC = RC_max(p4);
-            AbsoluteCeil = h_2(p4);
-        end
-    end
-    if RC_max(p4) < 101/60
-        if RC_max(p4) > 99.9/60
-            Service_RC = RC_max(p4);
-            ServiceCeil= h_2(p4);
-        end
-    end
-end
+%n_max_t = sqrt(((0.5*rho*(V_max^2))/(K*(W/S)))*((T_twin/W) - (0.5*rho*(V_max^2)*C_D0/(W/S))));
 
-AbsoluteCeil
-ServiceCeil
+%Range = (V_max/S_c) * LOD_max * log(W/(W - W_fuel))/5280;
 
-figure;
-plot(h_2,RC_max*60,'b','Linewidth',2)
-grid on
-title('Max Rate of Climb vs. Height')
-xlabel('Height, h [ft]')
-ylabel('Max Rate of Climb, RC_m_a_x [ft/min]')
+E0 = 0;
+%%Trim
+C_L_Se = (St/S)*a_e;
+C_m_Se = (h - h_ac)*C_L_Se - V_H*a_e;
+
+%Lift Coff(0 AoA)
+C_L0 = C_L0_w + a_t*(St/S)*(i_t - E0);
+%Stability Derivative - a for AoA
+C_La = a_w  + a_t*(St/S)*(1 - dEda);
+
+%Pitch Moment Coeff. - Zero
+C_m0 = C_mac_w + C_L0*(h - h_ac) ;
+%Pitch Stiffness - a for AoA
+C_ma = C_La*(h - h_ac);
+
+%Lift at trim angle
+C_L_trim = W/(0.5*rho*S*V_max^2);
+
+AlphaAndSe =...
+    inv([C_ma, C_m_Se;C_La, C_L_Se])*[(-C_m0);(C_L_trim-C_L0)]*180/pi;
+alpha_trim = AlphaAndSe(1)
+Se_trim = AlphaAndSe(2)
 
 
