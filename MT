@@ -43,8 +43,7 @@ V_H = (l_t_bar * St)/(c_mean * S);
 
 %% Standarized Pressure
 tau0 = 288.16*1.8; %R
-a1 = (-6.5*10^-3)*1.8/3.2808; %K/m to R/ft
-rho0 = 1.225/14.5939/(3.2808^3); %kg/m^3 to slug/ft^3
+a1 = (-6.5*10^-3)*1.8/3.2808; %K/m to R/ft 
 g = 32.174; %ft/s^2
 %R = 287; %J/kg*K
 R = 1716; %ft^2/s^2*R
@@ -54,36 +53,14 @@ h1 = 10000; %ft
 tau1 = tau0 + a1*h1; %K
 rho = rho0*(tau1/tau0)^(-1 - (g/(a1*R)));
 
-%% Problem 3
-LOD_max = sqrt(1/(4*C_D0*K));
-V_max = sqrt((2/rho)*(W/S)*sqrt(K/C_D0))
-%V_max = 400;
 
-%n_max_t = sqrt(((0.5*rho*(V_max^2))/(K*(W/S)))*((T_twin/W) - (0.5*rho*(V_max^2)*C_D0/(W/S))));
-
-%Range = (V_max/S_c) * LOD_max * log(W/(W - W_fuel))/5280;
-
-E0 = 0;
-%%Trim
-C_L_Se = (St/S)*a_e;
-C_m_Se = (h - h_ac)*C_L_Se - V_H*a_e;
-
-%Lift Coff(0 AoA)
-C_L0 = C_L0_w + a_t*(St/S)*(i_t - E0);
-%Stability Derivative - a for AoA
-C_La = a_w  + a_t*(St/S)*(1 - dEda);
-
-%Pitch Moment Coeff. - Zero
-C_m0 = C_mac_w + C_L0*(h - h_ac) ;
-%Pitch Stiffness - a for AoA
-C_ma = C_La*(h - h_ac);
-
-%Lift at trim angle
-C_L_trim = W/(0.5*rho*S*V_max^2);
-
-AlphaAndSe =...
-    inv([C_ma, C_m_Se;C_La, C_L_Se])*[(-C_m0);(C_L_trim-C_L0)]*180/pi;
-alpha_trim = AlphaAndSe(1)
-Se_trim = AlphaAndSe(2)
-
+%% Problem 4 - External Moments
+V = 400; %ft/s
+q = 0.1; %deg/s - pitch rate
+q_dot = 0.1; %deg/s^2 - pitch accel
+p = 0.01; %deg/s - yaw rate
+w_ibb = [p;q;0]*pi/180;
+%w_ibb = [0;q;p];
+dw_ibb = [0;q_dot;0]*pi/180;
+SumMom_b = J_b*(dw_ibb) + cross(w_ibb,J_b*w_ibb)
 
